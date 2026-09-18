@@ -2,14 +2,15 @@ import type {
   Adventure,
   DiceOutcome,
   DiceValue,
+  LearningConfig,
   Scene,
   SceneArt,
 } from "@/data/types";
 import { createPublicSupabaseClient } from "./supabase";
 
-type AdventureCard = Pick<
+export type AdventureCard = Pick<
   Adventure,
-  "slug" | "title" | "description" | "emoji" | "recommendedAge"
+  "slug" | "title" | "description" | "emoji" | "recommendedAge" | "learningGoals"
 >;
 
 type AdventureRow = {
@@ -19,6 +20,7 @@ type AdventureRow = {
   description: string | null;
   emoji: string | null;
   recommended_age: string | null;
+  learning_goals: string[] | null;
   start_scene_id: string | null;
 };
 
@@ -32,6 +34,7 @@ type SceneRow = {
   parent_prompt: string | null;
   image_path: string | null;
   art: SceneArt | null;
+  learning_config: LearningConfig | null;
   is_final: boolean;
   sort_order: number;
 };
@@ -58,7 +61,7 @@ export async function getAdventureList(): Promise<AdventureCard[]> {
   const supabase = createPublicSupabaseClient();
   const { data, error } = await supabase
     .from("adventures")
-    .select("slug,title,description,emoji,recommended_age")
+    .select("slug,title,description,emoji,recommended_age,learning_goals")
     .eq("published", true)
     .order("created_at", { ascending: true });
 
@@ -73,6 +76,7 @@ export async function getAdventureList(): Promise<AdventureCard[]> {
     description: row.description ?? "",
     emoji: row.emoji ?? "✨",
     recommendedAge: row.recommended_age ?? "",
+    learningGoals: Array.isArray(row.learning_goals) ? row.learning_goals : [],
   }));
 }
 
@@ -84,7 +88,7 @@ export async function getAdventureBySlug(
   const { data: adventureData, error: adventureError } = await supabase
     .from("adventures")
     .select(
-      "id,slug,title,description,emoji,recommended_age,start_scene_id",
+      "id,slug,title,description,emoji,recommended_age,learning_goals,start_scene_id",
     )
     .eq("slug", slug)
     .eq("published", true)
@@ -101,7 +105,7 @@ export async function getAdventureBySlug(
   const { data: sceneData, error: sceneError } = await supabase
     .from("scenes")
     .select(
-      "id,slug,title,subtitle,narration,challenge,parent_prompt,image_path,art,is_final,sort_order",
+      "id,slug,title,subtitle,narration,challenge,parent_prompt,image_path,art,learning_config,is_final,sort_order",
     )
     .eq("adventure_id", adventure.id)
     .order("sort_order", { ascending: true });
@@ -116,19 +120,21 @@ export async function getAdventureBySlug(
 
   const sceneIds = sceneRows.map((scene) => scene.id);
 
-  const [{ data: outcomeData, error: outcomeError }, { data: choiceData, error: choiceError }] =
-    await Promise.all([
-      supabase
-        .from("scene_outcomes")
-        .select("scene_id,dice_value,title,text,stars,mood")
-        .in("scene_id", sceneIds)
-        .order("dice_value", { ascending: true }),
-      supabase
-        .from("choices")
-        .select("scene_id,label,description,icon,next_scene_id,sort_order")
-        .in("scene_id", sceneIds)
-        .order("sort_order", { ascending: true }),
-    ]);
+  const [
+    { data: outcomeData, error: outcomeError },
+    { data: choiceData, error: choiceError },
+  ] = await Promise.all([
+    supabase
+      .from("scene_outcomes")
+      .select("scene_id,dice_value,title,text,stars,mood")
+      .in("scene_id", sceneIds)
+      .order("dice_value", { ascending: true }),
+    supabase
+      .from("choices")
+      .select("scene_id,label,description,icon,next_scene_id,sort_order")
+      .in("scene_id", sceneIds)
+      .order("sort_order", { ascending: true }),
+  ]);
 
   if (outcomeError || choiceError) {
     console.error("Erro carregando conteúdo da aventura:", {
@@ -140,17 +146,13 @@ export async function getAdventureBySlug(
 
   const outcomeRows = (outcomeData ?? []) as OutcomeRow[];
   const choiceRows = (choiceData ?? []) as ChoiceRow[];
-
   const slugBySceneId = new Map(sceneRows.map((scene) => [scene.id, scene.slug]));
   const scenes: Record<string, Scene> = {};
 
   for (const row of sceneRows) {
-    const outcomesForScene = outcomeRows.filter(
-      (outcome) => outcome.scene_id === row.id,
-    );
-
     const outcomes = {} as Record<DiceValue, DiceOutcome>;
-    for (const outcome of outcomesForScene) {
+
+    for (const outcome of outcomeRows.filter((item) => item.scene_id === row.id)) {
       outcomes[outcome.dice_value as DiceValue] = {
         title: outcome.title,
         text: outcome.text,
@@ -182,6 +184,7 @@ export async function getAdventureBySlug(
         ground: "#D5E1D0",
         accent: "#F5E8B8",
       },
+      learning: row.learning_config ?? { skills: [] },
       image: row.image_path ?? undefined,
       outcomes,
       choices,
@@ -199,6 +202,9 @@ export async function getAdventureBySlug(
     description: adventure.description ?? "",
     emoji: adventure.emoji ?? "✨",
     recommendedAge: adventure.recommended_age ?? "",
+    learningGoals: Array.isArray(adventure.learning_goals)
+      ? adventure.learning_goals
+      : [],
     startScene,
     scenes,
   };
