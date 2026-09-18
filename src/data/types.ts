@@ -24,6 +24,31 @@ export type SceneArt = {
   accent: string;
 };
 
+export type NumberGender = "masculine" | "feminine";
+
+export type FixedNumberConfig = {
+  value: number;
+  gender: NumberGender;
+  label: string;
+  emoji?: string;
+  visual: "emoji" | "trails";
+};
+
+export type RandomNumberConfig = {
+  min: number;
+  max: number;
+  emoji: string;
+  singular: string;
+  plural: string;
+  gender: NumberGender;
+};
+
+export type LearningConfig = {
+  skills: string[];
+  fixed?: FixedNumberConfig;
+  random?: RandomNumberConfig;
+};
+
 export type Scene = {
   id: string;
   title: string;
@@ -32,6 +57,7 @@ export type Scene = {
   challenge: string;
   parentPrompt: string;
   art: SceneArt;
+  learning: LearningConfig;
   image?: string;
   outcomes: Record<DiceValue, DiceOutcome>;
   choices: Choice[];
@@ -44,6 +70,7 @@ export type Adventure = {
   description: string;
   emoji: string;
   recommendedAge: string;
+  learningGoals: string[];
   startScene: string;
   scenes: Record<string, Scene>;
 };
