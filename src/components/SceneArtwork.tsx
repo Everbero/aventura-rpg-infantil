@@ -123,9 +123,11 @@ export function SceneArtwork({
 
           <FixedVisual scene={scene} />
 
-          <div className="floaty absolute left-1/2 top-[42%] z-10 -translate-x-1/2 -translate-y-1/2 text-[7rem] drop-shadow-sm md:text-[10rem]">
-            {scene.art.emoji}
-          </div>
+          {scene.learning.fixed?.emoji !== scene.art.emoji && (
+            <div className="floaty absolute left-1/2 top-[42%] z-10 -translate-x-1/2 -translate-y-1/2 text-[7rem] drop-shadow-sm md:text-[10rem]">
+              {scene.art.emoji}
+            </div>
+          )}
 
           {scene.art.secondaryEmoji && (
             <div className="absolute right-[8%] top-[18%] z-10 rotate-6 text-5xl opacity-80 md:text-7xl">
