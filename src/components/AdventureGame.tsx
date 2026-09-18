@@ -26,7 +26,7 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
       <div className="mx-auto max-w-[1500px]">
         <GameHeader
           title={adventure.title}
-          sceneNumber={game.sceneNumber}
+          sceneNumber={game.sceneIndex}
           stars={game.stars}
           diceMode={game.diceMode}
           onNarrate={game.narrate}
@@ -35,13 +35,17 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
         />
 
         <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr] lg:gap-6">
-          <SceneArtwork scene={game.scene} />
+          <SceneArtwork
+            scene={game.scene}
+            randomNumber={game.sceneNumber}
+          />
 
           <Card className="min-h-[420px] shadow-lg">
             <CardContent className="flex min-h-[420px] flex-1 flex-col p-5 md:p-8">
               {game.phase === "story" && (
                 <StoryStep
                   scene={game.scene}
+                  randomNumber={game.sceneNumber}
                   onContinue={() => game.setPhase("roll")}
                 />
               )}
