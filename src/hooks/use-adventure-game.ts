@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { randomInt } from "@/lib/numbers";
 import type { Adventure, DiceMode, DiceValue } from "@/data/types";
 
 export type GamePhase = "story" | "roll" | "result";
@@ -9,7 +10,13 @@ type SavedGame = {
   sceneId: string;
   stars: number;
   visited: string[];
+  sceneNumbers: Record<string, number>;
 };
+
+function makeSceneNumber(adventure: Adventure, sceneId: string) {
+  const config = adventure.scenes[sceneId]?.learning.random;
+  return config ? randomInt(config.min, config.max) : undefined;
+}
 
 export function useAdventureGame(adventure: Adventure) {
   const storageKey = "aventura-rpg:" + adventure.slug;
@@ -18,6 +25,7 @@ export function useAdventureGame(adventure: Adventure) {
   const [sceneId, setSceneId] = useState(adventure.startScene);
   const [stars, setStars] = useState(0);
   const [visited, setVisited] = useState<string[]>([adventure.startScene]);
+  const [sceneNumbers, setSceneNumbers] = useState<Record<string, number>>({});
   const [phase, setPhase] = useState<GamePhase>("story");
   const [roll, setRoll] = useState<DiceValue>(1);
   const [rolling, setRolling] = useState(false);
@@ -28,6 +36,7 @@ export function useAdventureGame(adventure: Adventure) {
 
   const scene = adventure.scenes[sceneId];
   const outcome = scene.outcomes[roll];
+  const sceneNumber = sceneNumbers[sceneId];
 
   useEffect(() => {
     const stored = window.localStorage.getItem(storageKey);
@@ -39,6 +48,7 @@ export function useAdventureGame(adventure: Adventure) {
           setSceneId(save.sceneId);
           setStars(save.stars ?? 0);
           setVisited(save.visited?.length ? save.visited : [save.sceneId]);
+          setSceneNumbers(save.sceneNumbers ?? {});
         }
       } catch {}
     }
@@ -52,18 +62,41 @@ export function useAdventureGame(adventure: Adventure) {
   }, [adventure.scenes, diceModeStorageKey, storageKey]);
 
   useEffect(() => {
+    if (!hydrated || sceneNumbers[sceneId] !== undefined) return;
+
+    const value = makeSceneNumber(adventure, sceneId);
+    if (value === undefined) return;
+
+    setSceneNumbers((current) => ({ ...current, [sceneId]: value }));
+  }, [adventure, hydrated, sceneId, sceneNumbers]);
+
+  useEffect(() => {
     if (!hydrated) return;
 
     window.localStorage.setItem(
       storageKey,
-      JSON.stringify({ sceneId, stars, visited } satisfies SavedGame),
+      JSON.stringify({
+        sceneId,
+        stars,
+        visited,
+        sceneNumbers,
+      } satisfies SavedGame),
     );
-  }, [hydrated, sceneId, stars, storageKey, visited]);
+  }, [hydrated, sceneId, sceneNumbers, stars, storageKey, visited]);
 
   useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(diceModeStorageKey, diceMode);
   }, [diceMode, diceModeStorageKey, hydrated]);
+
+  function prepareScene(next: string) {
+    setSceneNumbers((current) => {
+      if (current[next] !== undefined) return current;
+
+      const value = makeSceneNumber(adventure, next);
+      return value === undefined ? current : { ...current, [next]: value };
+    });
+  }
 
   function applyRoll(value: DiceValue) {
     setRoll(value);
@@ -93,6 +126,7 @@ export function useAdventureGame(adventure: Adventure) {
   }
 
   function choose(next: string) {
+    prepareScene(next);
     setSceneId(next);
     setVisited((current) => [...current, next]);
     setPhase("story");
@@ -101,6 +135,7 @@ export function useAdventureGame(adventure: Adventure) {
   }
 
   function jumpTo(next: string) {
+    prepareScene(next);
     setSceneId(next);
     setVisited((current) => [...current, next]);
     setPhase("story");
@@ -108,9 +143,14 @@ export function useAdventureGame(adventure: Adventure) {
   }
 
   function reset() {
+    const firstValue = makeSceneNumber(adventure, adventure.startScene);
+
     setSceneId(adventure.startScene);
     setStars(0);
     setVisited([adventure.startScene]);
+    setSceneNumbers(
+      firstValue === undefined ? {} : { [adventure.startScene]: firstValue },
+    );
     setPhase("story");
     setRoll(1);
     setForcedRoll(null);
@@ -142,7 +182,8 @@ export function useAdventureGame(adventure: Adventure) {
   return {
     scene,
     stars,
-    sceneNumber: visited.length,
+    sceneIndex: visited.length,
+    sceneNumber,
     phase,
     setPhase,
     roll,
