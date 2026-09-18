@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -16,7 +14,7 @@ const buttonVariants = cva(
         destructive: "bg-destructive text-white hover:bg-destructive/90",
         butter: "bg-butter text-butter-foreground hover:bg-butter/85",
         sage: "bg-sage text-sage-foreground hover:bg-sage/85",
-        mist: "bg-mist text-mist-foreground hover:bg-mist/85"
+        mist: "bg-mist text-mist-foreground hover:bg-mist/85",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -24,14 +22,14 @@ const buttonVariants = cva(
         lg: "h-12 rounded-2xl px-6 text-base",
         xl: "h-14 rounded-2xl px-7 text-lg",
         icon: "size-10",
-        "icon-sm": "size-9"
-      }
+        "icon-sm": "size-9",
+      },
     },
     defaultVariants: {
       variant: "default",
-      size: "default"
-    }
-  }
+      size: "default",
+    },
+  },
 );
 
 function Button({
