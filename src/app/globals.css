@@ -1,34 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f3e9;
-  --foreground: #2a2438;
+  --background: #F7F3EE;
+  --foreground: #423E49;
+  --lavender: #9188B8;
+  --lavender-soft: #E9E3F1;
+  --sage: #C9DCC7;
+  --mist: #DCEAF0;
+  --butter: #F4DFA0;
+  --rose: #EEDDE4;
 }
 
 * { box-sizing: border-box; }
-html { background: var(--background); }
+
+html {
+  background: var(--background);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 15% 10%, rgba(255,255,255,.9), transparent 28%),
-    radial-gradient(circle at 90% 20%, rgba(255,223,128,.24), transparent 24%),
+    radial-gradient(circle at 12% 8%, rgba(255,255,255,.88), transparent 30%),
+    radial-gradient(circle at 90% 16%, rgba(220,234,240,.5), transparent 26%),
+    radial-gradient(circle at 76% 82%, rgba(233,227,241,.46), transparent 30%),
     var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-button, a { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible { outline: 4px solid #f6c453; outline-offset: 3px; }
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 4px solid #D4C58F;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: #DDD5E8;
+  color: #403A4A;
+}
 
 @keyframes die-bounce {
   0%, 100% { transform: rotate(0deg) scale(1); }
-  30% { transform: rotate(-10deg) scale(1.08); }
-  60% { transform: rotate(9deg) scale(.96); }
+  30% { transform: rotate(-10deg) scale(1.06); }
+  60% { transform: rotate(9deg) scale(.97); }
 }
-.animate-die { animation: die-bounce .55s ease; }
+
+.animate-die {
+  animation: die-bounce .55s ease;
+}
 
 @keyframes floaty {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
-.floaty { animation: floaty 4s ease-in-out infinite; }
+
+.floaty {
+  animation: floaty 4s ease-in-out infinite;
+}
