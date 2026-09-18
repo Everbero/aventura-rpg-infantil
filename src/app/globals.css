@@ -1,17 +1,76 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #F7F3EE;
-  --foreground: #423E49;
-  --lavender: #9188B8;
-  --lavender-soft: #E9E3F1;
-  --sage: #C9DCC7;
-  --mist: #DCEAF0;
-  --butter: #F4DFA0;
-  --rose: #EEDDE4;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-butter: var(--butter);
+  --color-butter-foreground: var(--butter-foreground);
+  --color-sage: var(--sage);
+  --color-sage-foreground: var(--sage-foreground);
+  --color-mist: var(--mist);
+  --color-mist-foreground: var(--mist-foreground);
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }
 
-* { box-sizing: border-box; }
+:root {
+  --radius: 1rem;
+
+  --background: #f7f3ee;
+  --foreground: #423e49;
+
+  --card: #fffdfc;
+  --card-foreground: #494451;
+
+  --primary: #9188b8;
+  --primary-foreground: #ffffff;
+
+  --secondary: #e9e3f1;
+  --secondary-foreground: #615873;
+
+  --muted: #f1edef;
+  --muted-foreground: #7d7683;
+
+  --accent: #f2edf5;
+  --accent-foreground: #595263;
+
+  --destructive: #c58f9b;
+
+  --border: #e3dde6;
+  --ring: #b9afca;
+
+  --butter: #f1d785;
+  --butter-foreground: #61583f;
+
+  --sage: #dde9d8;
+  --sage-foreground: #596b56;
+
+  --mist: #dceaf0;
+  --mist-foreground: #566e77;
+}
+
+* {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
 
 html {
   background: var(--background);
@@ -29,19 +88,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-button, a {
+button,
+[role="button"]:not(:disabled) {
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-button:focus-visible,
-a:focus-visible {
-  outline: 4px solid #D4C58F;
-  outline-offset: 3px;
-}
-
 ::selection {
-  background: #DDD5E8;
-  color: #403A4A;
+  background: #ddd5e8;
+  color: #403a4a;
 }
 
 @keyframes die-bounce {
