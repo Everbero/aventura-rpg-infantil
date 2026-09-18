@@ -26,8 +26,8 @@ export default async function Home() {
             Aventuras de Dados
           </h1>
           <p className="mt-5 text-xl font-semibold leading-relaxed text-muted-foreground md:text-2xl">
-            Histórias para imaginar, resolver pequenos problemas e aprender os
-            números de 1 a 6 — sem perder nem procurar uma resposta “certa”.
+            Histórias para imaginar, desenvolver habilidades e aprender
+            brincando — com o dado de 1 a 6 e atividades de contagem até 10.
           </p>
         </header>
 
@@ -50,6 +50,14 @@ export default async function Home() {
                   {adventure.description}
                 </CardDescription>
 
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {adventure.learningGoals.map((goal) => (
+                    <Badge key={goal} variant="outline">
+                      {goal}
+                    </Badge>
+                  ))}
+                </div>
+
                 <Link
                   href={"/aventura/" + adventure.slug}
                   className={cn(
@@ -68,8 +76,8 @@ export default async function Home() {
               <div className="text-6xl">➕</div>
               <CardTitle className="mt-4 text-2xl">Próxima aventura</CardTitle>
               <CardDescription className="mt-2 max-w-sm">
-                A estrutura já está pronta para piratas, dinossauros, espaço,
-                fundo do mar e outras histórias.
+                Cada nova aventura poderá treinar um conjunto diferente de
+                habilidades.
               </CardDescription>
             </CardContent>
           </Card>
