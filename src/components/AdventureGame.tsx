@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dice } from "./Dice";
 import { ParentPanel } from "./ParentPanel";
 import { SceneArtwork } from "./SceneArtwork";
-import type { Adventure, DiceValue } from "@/data/types";
+import type { Adventure, DiceMode, DiceValue } from "@/data/types";
 
 type Phase = "story" | "roll" | "result";
 
@@ -23,8 +23,18 @@ const moodStyle = {
   magic: "bg-violet-50 border-violet-300 text-violet-950",
 };
 
+const physicalDieFaces: Record<DiceValue, string> = {
+  1: "⚀",
+  2: "⚁",
+  3: "⚂",
+  4: "⚃",
+  5: "⚄",
+  6: "⚅",
+};
+
 export function AdventureGame({ adventure }: { adventure: Adventure }) {
-  const storageKey = `aventura-rpg:${adventure.slug}`;
+  const storageKey = "aventura-rpg:" + adventure.slug;
+  const diceModeStorageKey = "aventura-rpg:dice-mode";
   const [sceneId, setSceneId] = useState(adventure.startScene);
   const [stars, setStars] = useState(0);
   const [visited, setVisited] = useState<string[]>([adventure.startScene]);
@@ -34,6 +44,7 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
   const [hydrated, setHydrated] = useState(false);
   const [parentOpen, setParentOpen] = useState(false);
   const [forcedRoll, setForcedRoll] = useState<DiceValue | null>(null);
+  const [diceMode, setDiceMode] = useState<DiceMode>("digital");
 
   const scene = adventure.scenes[sceneId];
   const outcome = useMemo(() => scene.outcomes[roll], [scene, roll]);
@@ -50,18 +61,29 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
         }
       } catch {}
     }
+
+    const storedDiceMode = window.localStorage.getItem(diceModeStorageKey);
+    if (storedDiceMode === "digital" || storedDiceMode === "physical") {
+      setDiceMode(storedDiceMode);
+    }
+
     setHydrated(true);
-  }, [adventure.scenes, storageKey]);
+  }, [adventure.scenes, diceModeStorageKey, storageKey]);
 
   useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(storageKey, JSON.stringify({ sceneId, stars, visited } satisfies SavedGame));
   }, [hydrated, sceneId, stars, visited, storageKey]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(diceModeStorageKey, diceMode);
+  }, [diceMode, diceModeStorageKey, hydrated]);
+
   function speakScene() {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    const speech = new SpeechSynthesisUtterance(`${scene.title}. ${scene.narration} ${scene.challenge}`);
+    const speech = new SpeechSynthesisUtterance(scene.title + ". " + scene.narration + " " + scene.challenge);
     speech.lang = "pt-BR";
     speech.rate = 0.88;
     window.speechSynthesis.speak(speech);
@@ -70,6 +92,13 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
   async function fullscreen() {
     if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
     else await document.exitFullscreen?.();
+  }
+
+  function applyRoll(chosen: DiceValue) {
+    setRoll(chosen);
+    setStars((current) => current + scene.outcomes[chosen].stars);
+    setForcedRoll(null);
+    setPhase("result");
   }
 
   function doRoll() {
@@ -82,13 +111,15 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
       ticks += 1;
       if (ticks >= 7) {
         window.clearInterval(timer);
-        setRoll(chosen);
         setRolling(false);
-        setStars((current) => current + scene.outcomes[chosen].stars);
-        setForcedRoll(null);
-        setPhase("result");
+        applyRoll(chosen);
       }
     }, 75);
+  }
+
+  function registerPhysicalRoll(chosen: DiceValue) {
+    if (rolling) return;
+    applyRoll(chosen);
   }
 
   function choose(next: string) {
@@ -120,7 +151,14 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
             <p className="truncate text-xs font-black uppercase tracking-[.18em] text-violet-600">{adventure.title}</p>
             <p className="mt-1 text-sm font-bold text-slate-500">Cena {visited.length} · ⭐ {stars}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              onClick={() => setParentOpen(true)}
+              className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-black text-amber-900 md:px-4"
+              title="Configurar o tipo de dado"
+            >
+              🎲 <span className="hidden sm:inline">{diceMode === "digital" ? "Digital" : "Físico"}</span>
+            </button>
             <button onClick={speakScene} className="rounded-xl bg-sky-50 px-3 py-2 text-sm font-black text-sky-800 md:px-4">🔊 <span className="hidden sm:inline">Narrar</span></button>
             <button onClick={fullscreen} className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-800 md:px-4">⛶ <span className="hidden sm:inline">Tela cheia</span></button>
             <button onClick={() => setParentOpen(true)} className="rounded-xl bg-violet-50 px-3 py-2 text-sm font-black text-violet-800 md:px-4">⚙ <span className="hidden sm:inline">Mestre</span></button>
@@ -146,13 +184,34 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
               </>
             )}
 
-            {phase === "roll" && (
+            {phase === "roll" && diceMode === "digital" && (
               <div className="flex flex-1 flex-col items-center justify-center text-center">
                 <p className="text-sm font-black uppercase tracking-[.2em] text-violet-600">Agora conte os pontinhos</p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">Jogue o dado</h3>
                 <div className="my-7"><Dice value={roll} rolling={rolling} /></div>
                 <p className="mb-5 max-w-md text-slate-500">O dado não diz que a ideia foi errada. Ele só conta que tipo de surpresa aconteceu.</p>
                 <button disabled={rolling} onClick={doRoll} className="w-full rounded-2xl bg-amber-400 px-6 py-5 text-2xl font-black text-amber-950 shadow-lg transition hover:bg-amber-300 disabled:opacity-60">🎲 {rolling ? "Rolando…" : "Jogar dado"}</button>
+              </div>
+            )}
+
+            {phase === "roll" && diceMode === "physical" && (
+              <div className="flex flex-1 flex-col justify-center text-center">
+                <p className="text-sm font-black uppercase tracking-[.2em] text-violet-600">Dado físico</p>
+                <h3 className="mt-2 text-3xl font-black md:text-4xl">Jogue o dado de verdade!</h3>
+                <p className="mx-auto mt-3 max-w-md text-slate-500">Depois, toque abaixo no número que apareceu.</p>
+                <div className="mt-7 grid grid-cols-3 gap-3">
+                  {([1, 2, 3, 4, 5, 6] as DiceValue[]).map((value) => (
+                    <button
+                      key={value}
+                      onClick={() => registerPhysicalRoll(value)}
+                      aria-label={"Registrar resultado " + value}
+                      className="rounded-2xl border-2 border-slate-100 bg-slate-50 px-3 py-4 transition hover:border-violet-300 hover:bg-violet-50 active:scale-[.98]"
+                    >
+                      <span className="block text-5xl leading-none text-violet-900">{physicalDieFaces[value]}</span>
+                      <span className="mt-2 block text-xl font-black text-slate-900">{value}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -166,7 +225,7 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
                   </div>
                 </div>
 
-                <div className={`mt-6 rounded-2xl border-2 p-5 ${moodStyle[outcome.mood]}`}>
+                <div className={"mt-6 rounded-2xl border-2 p-5 " + moodStyle[outcome.mood]}>
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="text-2xl font-black">{outcome.title}</h3>
                     {outcome.stars > 0 && <span className="whitespace-nowrap rounded-full bg-white/70 px-3 py-1 font-black">+{outcome.stars} ⭐</span>}
@@ -182,15 +241,25 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
                     </div>
                   ) : (
                     <>
-                      <p className="mb-3 text-center text-sm font-black uppercase tracking-[.16em] text-slate-500">Escolha o próximo caminho</p>
+                      <p className="mb-3 text-center text-sm font-black uppercase tracking-[.16em] text-slate-500">Para onde vamos agora?</p>
                       <div className="grid gap-3 sm:grid-cols-2">
-                        {scene.choices.map((choice) => (
-                          <button key={`${choice.label}-${choice.next}`} onClick={() => choose(choice.next)} className="rounded-2xl border-2 border-slate-100 bg-slate-50 p-4 text-left transition hover:border-violet-300 hover:bg-violet-50">
-                            <span className="text-3xl">{choice.icon}</span>
-                            <span className="mt-2 block text-xs font-black uppercase tracking-[.16em] text-violet-600">{choice.label}</span>
-                            <span className="mt-1 block text-lg font-black text-slate-900">{choice.description}</span>
-                          </button>
-                        ))}
+                        {scene.choices.map((choice) => {
+                          const destination = adventure.scenes[choice.next];
+                          return (
+                            <button
+                              key={choice.next + "-" + choice.description}
+                              onClick={() => choose(choice.next)}
+                              className="rounded-2xl border-2 border-slate-100 bg-slate-50 p-5 text-left transition hover:border-violet-300 hover:bg-violet-50 active:scale-[.99]"
+                              aria-label={"Ir para " + (destination?.title ?? choice.description)}
+                            >
+                              <span className="text-4xl">{choice.icon}</span>
+                              <span className="mt-3 block text-xl font-black text-slate-950">
+                                {destination?.title ?? choice.description}
+                              </span>
+                              <span className="mt-1 block text-sm font-semibold text-slate-500">{choice.description}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </>
                   )}
@@ -210,6 +279,8 @@ export function AdventureGame({ adventure }: { adventure: Adventure }) {
         onClose={() => setParentOpen(false)}
         adventure={adventure}
         currentScene={sceneId}
+        diceMode={diceMode}
+        onDiceModeChange={setDiceMode}
         forcedRoll={forcedRoll}
         onForceRoll={setForcedRoll}
         onJump={(next) => { setSceneId(next); setVisited((current) => [...current, next]); setPhase("story"); setParentOpen(false); }}
