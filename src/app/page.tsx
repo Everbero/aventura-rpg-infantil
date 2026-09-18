@@ -1,71 +1,78 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import { getAdventureList } from "@/lib/adventures";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const adventureList = await getAdventureList();
+  const adventures = await getAdventureList();
 
   return (
     <main className="min-h-screen px-5 py-10 md:px-10 md:py-16">
       <div className="mx-auto max-w-6xl">
-        <div className="max-w-3xl">
-          <div className="inline-flex rounded-full bg-[#E9E3F1] px-4 py-2 text-sm font-black uppercase tracking-[.18em] text-[#70658E]">
+        <header className="max-w-3xl">
+          <Badge variant="secondary" className="uppercase tracking-[.18em]">
             RPG para brincar junto
-          </div>
-          <h1 className="mt-6 text-5xl font-black tracking-tight text-[#393646] md:text-7xl">
+          </Badge>
+          <h1 className="mt-6 text-5xl font-black tracking-tight md:text-7xl">
             Aventuras de Dados
           </h1>
-          <p className="mt-5 text-xl font-semibold leading-relaxed text-[#6E6978] md:text-2xl">
+          <p className="mt-5 text-xl font-semibold leading-relaxed text-muted-foreground md:text-2xl">
             Histórias para imaginar, resolver pequenos problemas e aprender os
-            números de 1 a 6 — sem perder, morrer ou escolher uma resposta
-            “certa”.
+            números de 1 a 6 — sem perder nem procurar uma resposta “certa”.
           </p>
-        </div>
+        </header>
 
         <section className="mt-12 grid gap-6 md:grid-cols-2">
-          {adventureList.map((adventure) => (
-            <article
-              key={adventure.slug}
-              className="overflow-hidden rounded-[2rem] border border-[#E1DCE6] bg-[#FFFDFC] shadow-[0_16px_50px_rgba(78,70,96,.10)]"
-            >
-              <div className="grid min-h-64 place-items-center bg-gradient-to-br from-[#E8E0EF] via-[#DCEAF0] to-[#DDE9D8] text-9xl">
+          {adventures.map((adventure) => (
+            <Card key={adventure.slug} className="overflow-hidden shadow-lg">
+              <div className="grid min-h-64 place-items-center bg-gradient-to-br from-secondary via-mist to-sage text-9xl">
                 {adventure.emoji}
               </div>
-              <div className="p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-3xl font-black text-[#403C4A]">
-                    {adventure.title}
-                  </h2>
-                  <span className="whitespace-nowrap rounded-full bg-[#F5E9BD] px-3 py-1 text-sm font-black text-[#6D603F]">
+
+              <CardContent className="p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <CardTitle className="text-3xl">{adventure.title}</CardTitle>
+                  <Badge variant="butter" className="whitespace-nowrap">
                     {adventure.recommendedAge}
-                  </span>
+                  </Badge>
                 </div>
-                <p className="mt-3 text-lg leading-relaxed text-[#726D78]">
+
+                <CardDescription className="mt-3 text-lg leading-relaxed">
                   {adventure.description}
-                </p>
+                </CardDescription>
+
                 <Link
                   href={"/aventura/" + adventure.slug}
-                  className="mt-6 block rounded-2xl bg-[#9188B8] px-6 py-4 text-center text-xl font-black text-white transition hover:bg-[#8178A8]"
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "mt-6 w-full text-base",
+                  )}
                 >
                   Começar aventura →
                 </Link>
-              </div>
-            </article>
+              </CardContent>
+            </Card>
           ))}
 
-          <article className="grid min-h-[360px] place-items-center rounded-[2rem] border-2 border-dashed border-[#D9D3DE] bg-[#FCFAF8]/80 p-8 text-center">
-            <div>
+          <Card className="grid min-h-[360px] place-items-center border-dashed bg-card/65 text-center shadow-none">
+            <CardContent className="p-8">
               <div className="text-6xl">➕</div>
-              <h2 className="mt-4 text-2xl font-black text-[#46414F]">
-                Próxima aventura
-              </h2>
-              <p className="mt-2 max-w-sm text-[#7C7682]">
+              <CardTitle className="mt-4 text-2xl">Próxima aventura</CardTitle>
+              <CardDescription className="mt-2 max-w-sm">
                 A estrutura já está pronta para piratas, dinossauros, espaço,
                 fundo do mar e outras histórias.
-              </p>
-            </div>
-          </article>
+              </CardDescription>
+            </CardContent>
+          </Card>
         </section>
       </div>
     </main>
