@@ -1,14 +1,18 @@
 import { notFound } from "next/navigation";
 import { AdventureGame } from "@/components/AdventureGame";
-import { adventures } from "@/data/adventures";
+import { getAdventureBySlug } from "@/lib/adventures";
 
-export function generateStaticParams() {
-  return Object.keys(adventures).map((slug) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
-export default async function AdventurePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function AdventurePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  const adventure = adventures[slug];
+  const adventure = await getAdventureBySlug(slug);
+
   if (!adventure) notFound();
+
   return <AdventureGame adventure={adventure} />;
 }
