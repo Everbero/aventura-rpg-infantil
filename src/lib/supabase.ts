@@ -1,21 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ??
-  process.env.SUPABASE_URL;
+function getSupabaseConfig() {
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    process.env.SUPABASE_URL;
 
-const supabasePublishableKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  process.env.SUPABASE_PUBLISHABLE_KEY;
+  const publishableKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY;
 
-if (!supabaseUrl || !supabasePublishableKey) {
-  throw new Error(
-    "Supabase não configurado. Verifique NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.",
-  );
+  if (!url || !publishableKey) {
+    throw new Error(
+      "Supabase não configurado. Verifique NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.",
+    );
+  }
+
+  return { url, publishableKey };
 }
 
 export function createPublicSupabaseClient() {
-  return createClient(supabaseUrl, supabasePublishableKey, {
+  const { url, publishableKey } = getSupabaseConfig();
+
+  return createClient(url, publishableKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
