@@ -6,11 +6,13 @@ A criança ouve a cena, inventa uma solução, joga um dado de seis lados, conta
 
 ## Stack
 
-- Next.js 16 / App Router
-- React 19
+- Next.js / App Router
+- React
 - TypeScript
-- Tailwind CSS 4
-- Sem banco de dados: progresso salvo no `localStorage`
+- Tailwind CSS
+- Supabase Postgres para aventuras, cenas, caminhos e resultados
+- Supabase Auth/Storage preparados para evolução do projeto
+- Progresso local ainda salvo em `localStorage`
 
 ## Rodar localmente
 
@@ -19,28 +21,42 @@ npm install
 npm run dev
 ```
 
-Abra `http://localhost:3000`.
+Crie um arquivo `.env.local` com:
 
-## O MVP já inclui
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+```
 
-- Uma aventura completa com caminhos ramificados
-- Dado visual de 1 a 6
-- Consequências diferentes para cada número
-- Estrelas como recompensa e exercício de contagem
-- Salvamento automático local
-- Botão de tela cheia para compartilhar/espelhar
-- Leitura da cena pelo navegador (`speechSynthesis`)
-- Modo mestre para forçar dado, pular cena e reiniciar
-- Ilustração simples por cena
-- Suporte para substituir a ilustração por imagens em `/public/scenes`
+Se o projeto estiver conectado ao Supabase pelo Vercel Marketplace, essas variáveis são sincronizadas automaticamente no deploy.
 
-## Criar nova aventura
+## Conteúdo da aventura
 
-1. Copie `src/data/floresta-encantada.ts`.
-2. Troque `slug`, título e cenas.
-3. Registre a aventura em `src/data/adventures.ts`.
+As aventuras e cenas não ficam mais hardcoded no repositório.
 
-A interface do jogo não precisa ser alterada.
+O app carrega do Supabase:
+
+- `adventures`
+- `scenes`
+- `choices`
+- `scene_outcomes`
+
+Aventura inicial: **A Floresta das Estrelas**.
+
+## O MVP inclui
+
+- caminhos ramificados com nomes de destino
+- dado digital ou físico
+- dado visual de 1 a 6
+- consequências diferentes para cada número
+- estrelas como recompensa e exercício de contagem
+- salvamento automático local
+- tela cheia para compartilhar/espelhar
+- leitura da cena pelo navegador
+- Modo Mestre
+- ilustração simples por cena
+- paleta pastel configurável por cena via campo `art` no Supabase
+- suporte para imagens reais via `image_path`
 
 ## Filosofia do dado
 
