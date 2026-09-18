@@ -1,5 +1,7 @@
 export type DiceValue = 1 | 2 | 3 | 4 | 5 | 6;
 
+export type DiceMode = "digital" | "physical";
+
 export type DiceOutcome = {
   title: string;
   text: string;
