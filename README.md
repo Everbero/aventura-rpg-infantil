@@ -9,7 +9,8 @@ A criança ouve a cena, inventa uma solução, joga um dado de seis lados, conta
 - Next.js / App Router
 - React
 - TypeScript
-- Tailwind CSS
+- Tailwind CSS 4
+- shadcn/ui (New York) + Lucide
 - Supabase Postgres para aventuras, cenas, caminhos e resultados
 - Supabase Auth/Storage preparados para evolução do projeto
 - Progresso local ainda salvo em `localStorage`
@@ -42,6 +43,10 @@ O app carrega do Supabase:
 - `scene_outcomes`
 
 Aventura inicial: **A Floresta das Estrelas**.
+
+## UI
+
+Os primitives ficam em `src/components/ui` seguindo a estrutura do shadcn/ui. A lógica do jogo foi separada em `src/components/game` e `src/hooks`, para manter `AdventureGame.tsx` enxuto.
 
 ## O MVP inclui
 
